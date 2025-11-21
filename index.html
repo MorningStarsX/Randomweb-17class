@@ -1,0 +1,177 @@
+<!DOCTYPE html><html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>17班随机抽取系统</title>
+<style>
+  :root{--bg:#f5f7fa;--card:#fff;--accent:#4a90e2;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{font-family:Inter, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", Arial, sans-serif; background:var(--bg); margin:0; padding:24px}
+  .wrap{max-width:860px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(16,24,40,.08)}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  h1{font-size:18px;margin:0}
+  .controls{display:flex;gap:8px;align-items:center}
+  input[type=number]{width:84px;padding:8px;border-radius:8px;border:1px solid #e6e9ef}
+  button{padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-reset{background:#f59e0b;color:#fff}
+  .btn-small{padding:6px 8px;border-radius:8px}
+  .result{margin-top:18px;padding:18px;border-radius:12px;background:linear-gradient(180deg,#f8fbff,#eef6ff);min-height:72px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  #display{font-size:20px;font-weight:700;min-height:28px}
+  #sub{font-size:13px;color:var(--muted);margin-top:6px}
+  details{margin-top:16px;padding:12px;border-radius:10px;background:#fbfdff}
+  pre{white-space:pre-wrap;margin:0;font-family:SFMono-Regular,Menlo,monospace;font-size:13px}
+  .meta{display:flex;gap:10px;align-items:center;margin-top:12px}
+  .small{font-size:13px;color:var(--muted)}
+  /* animation */
+  .rolling{height:36px;overflow:hidden;display:flex;align-items:center}
+  .rolling .item{padding:6px 12px;border-radius:8px;background:#fff;margin:0 6px;box-shadow:0 6px 18px rgba(12,20,40,0.06)}
+  @keyframes roll {0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <header>
+      <h1>17班随机抽取系统(权重)</h1>
+      <div class="controls">
+        <label for="count">抽取人数</label>
+        <input id="count" type="number" min="1" value="1" />
+        <button id="drawBtn" class="btn-primary">开始抽取</button>
+        <button id="resetBtn" class="btn-reset">重置权重</button>
+      </div>
+    </header><div class="result" aria-live="polite">
+  <div id="display">还未抽取</div>
+  <div id="sub">当前可以抽取的人数：<span id="available"></span></div>
+</div>
+
+<details>
+  <summary><strong>人员名单(可折叠)</strong></summary>
+  <pre id="list"></pre>
+</details>
+
+<div class="meta">
+  <div class="small">说明：每被抽取一次，该人员的权重会乘以 <code>0.4</code>（衰减）。</div>
+  <div style="margin-left:auto" class="small">已修复：无重复函数、动画平滑、重置安全</div>
+</div>
+
+  </div>
+</div><script>
+// 初始名单(用于重置)
+const INITIAL = {
+ "曾佳怡":1.0, "陈凯":1.0, "陈俐肜":1.0, "陈芋雄":1.0, "陈哲宇":1.0, "陈子萓":1.0, "邓蓉清":1.0, "杜韦鹏":1.0, "方毅":1.0, "符丰牧":1.0,
+ "符智晨":1.0, "黄艳萍":1.0, "黄志威":1.0, "揭弘毅":1.0, "揭子尧":1.0, "赖聪":1.0, "赖婷":1.0, "赖亚宁":1.0, "赖雨欣":1.0, "赖钰玲":1.0,
+ "李诚铚":1.0, "李华珍":1.0, "李惠东":1.0, "李哲聪":1.0, "廖鸿瑞":1.0, "廖俊":1.0, "刘扬":1.0, "刘艺":1.0, "马哲灏":1.0, "聂娅馨":1.0,
+ "瞿世浓":1.0, "饶俊彦":1.0, "饶淑玲":1.0, "饶文垒":1.0, "饶咏坤":1.0, "魏如俊":1.0, "魏志雄":1.0, "魏智萱":1.0, "温粤凡":1.0, "吴博宇":1.0,
+ "吴海艳":1.0, "吴和兴":1.0, "夏浩轩":1.0, "夏禹豪":1.0, "肖志远":1.0, "谢佳童":1.0, "谢近哲":1.0, "谢雨欣":1.0, "幸天睿":1.0, "熊宇勋":1.0,
+ "徐子豪":1.0, "杨嘉琦":1.0, "叶丹":1.0, "余凡":1.0, "余梦瑶":1.0
+};
+
+// 深拷贝当前权重（对象）
+let people = JSON.parse(JSON.stringify(INITIAL));
+
+const listEl = document.getElementById('list');
+const display = document.getElementById('display');
+const available = document.getElementById('available');
+const drawBtn = document.getElementById('drawBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+function refreshList(){
+  listEl.textContent = JSON.stringify(people, null, 2);
+  available.textContent = Object.keys(people).length;
+}
+refreshList();
+
+// 加权随机 - 使用累计权重方法，稳定且不依赖排序
+function pickOne(weights){
+  const entries = Object.entries(weights);
+  let total = 0;
+  for (const [,w] of entries) { total += Math.max(0, +w); }
+  if (total <= 0) return null;
+  let r = Math.random() * total;
+  for (const [name, w] of entries) {
+    if (r < w) return name;
+    r -= w;
+  }
+  return entries[entries.length-1][0];
+}
+
+// 抽取主逻辑：带动画（滚动样式）
+async function draw() {
+  const n = Math.max(1, Math.floor(Number(document.getElementById('count').value) || 1));
+  drawBtn.disabled = true;
+  resetBtn.disabled = true;
+
+  const picked = [];
+  // 为每一次抽取做动画
+  for (let i=0;i<n;i++){
+    // 临时副本供单次抽取使用（不立即改变全局权重，避免影响同轮次）
+    const temp = JSON.parse(JSON.stringify(people));
+    // 如果所有权重都为0，则停止
+    const one = pickOne(temp);
+    if (!one){
+      display.textContent = '没有可抽取的人员（权重为0）';
+      break;
+    }
+    // 运行动画：快速轮播一些候选名字，然后停在最终结果
+    await runAnimation(one);
+    picked.push(one);
+
+    // 当前轮的衰减：立刻对全局权重应用衰减，确保下一轮受影响
+    people[one] = Number((people[one] * 0.4).toFixed(6));
+    refreshList();
+    // 确保每次抽取间有小暂停
+    await sleep(300);
+  }
+
+  if (picked.length>0){
+    display.textContent = '抽取结果：' + picked.join('，');
+  }
+
+  drawBtn.disabled = false;
+  resetBtn.disabled = false;
+}
+
+// 运行简单的滚动动画，最终显示 finalName
+function runAnimation(finalName){
+  return new Promise(resolve=>{
+    // 生成一个短序列用于动画（包含最终名字）
+    const names = Object.keys(people);
+    const seq = [];
+    // 取 10 个随机名字 + 最终
+    for (let i=0;i<10;i++) seq.push(names[Math.floor(Math.random()*names.length)]);
+    seq.push(finalName);
+
+    // 显示逐个更换（像老虎机）
+    let idx = 0;
+    display.textContent = '';
+    const interval = setInterval(()=>{
+      display.textContent = seq[idx];
+      idx++;
+      if (idx>=seq.length){
+        clearInterval(interval);
+        // 给一点停留时间看清楚
+        setTimeout(()=>resolve(), 250);
+      }
+    }, 80); // 速度可调，值越小越快
+  });
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function resetWeights(){
+  if (!confirm('确认要将所有权重重置为初始值吗？')) return;
+  people = JSON.parse(JSON.stringify(INITIAL));
+  refreshList();
+  display.textContent = '权重已重置为初始值';
+}
+
+// 绑定事件
+drawBtn.addEventListener('click', draw);
+resetBtn.addEventListener('click', resetWeights);
+
+// 支持回车触发抽取
+document.getElementById('count').addEventListener('keydown', (e)=>{ if (e.key === 'Enter') draw(); });
+</script></body>
+</html>
