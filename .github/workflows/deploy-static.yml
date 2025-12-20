@@ -1,0 +1,62 @@
+# .github/workflows/deploy-static.yml
+name: Deploy Static Web to GitHub Pages
+
+on:
+  # 推送到 main 分支时触发
+  push:
+    branches: ["main"]
+  # 允许手动触发
+  workflow_dispatch:
+  # 定时触发（可选，每天UTC时间0点）
+  schedule:
+    - cron: '0 0 * * *'
+
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      # 2. 检查 web 文件夹是否存在
+      - name: Check web folder
+        run: |
+          if [ ! -d "web" ]; then
+            echo "Error: 'web' folder not found!"
+            echo "Please make sure your web files are in the 'web' directory."
+            exit 1
+          fi
+          echo "Found web folder with contents:"
+          ls -la web/
+          
+      # 3. 设置 Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      # 4. 上传 web 文件夹作为构建产物
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 上传 web 文件夹中的所有文件
+          path: './web/'
+          
+      # 5. 部署到 GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
