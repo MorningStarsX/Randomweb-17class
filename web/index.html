@@ -3,361 +3,491 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>权重随机抽人</title>
+<title>权重随机抽人(MorningStarsX)</title>
 <style>
- .pointer{
-  width:0;
-  height:0;
-  border-left:14px solid transparent;
-  border-right:14px solid transparent;
-  border-bottom:22px solid #ef4444;
-  position:absolute;
-  top:8px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:10;
+/* ===== Global vars ===== */
+:root{
+  --accent:#2563eb;
+  --muted:#6b7280;
+  --bg:#ffffff;
+  --card:#f8fafc;
+  --radius:12px;
+  --cooldown-color: #ef4444;
 }
-  :root{
-    --accent:#2563eb;
-    --muted:#6b7280;
-    --bg:#ffffff;
-    --card:#f8fafc;
-    --radius:12px;
-  }
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, "Helvetica Neue", Arial, sans-serif;color:#111827;}
-  .container{max-width:1100px;margin:28px auto;padding:20px;}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-  h1{font-size:20px;margin:0}
-  .controls{display:flex;gap:8px;align-items:center;}
-  /* From Uiverse.io by ShadowShahriar */ 
-button {
- --border-radius: 13px;
- --border-width: 4px;
- appearance: none;
- position: relative;
- padding: 1em 2em;
- border: 0;
- background-color: #212121;
- font-family: "Roboto", Arial, "Segoe UI", sans-serif;
- font-size: 14px;
- font-weight: 500;
- color: #fff;
- z-index: 2;
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, "Helvetica Neue", Arial, sans-serif;color:#111827;}
+.container{max-width:1100px;margin:28px auto;padding:20px;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;}
+h1{font-size:20px;margin:0}
+.controls{display:flex;gap:8px;align-items:center;margin-top:8px;}
+
+/* =====================
+   Button style from Uiverse.io by Nawsome 
+   ===================== */
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap:12px;
+  align-items:center;
 }
 
-button::after {
- --m-i: linear-gradient(#000, #000);
- --m-o: content-box, padding-box;
- content: "";
- position: absolute;
- left: 0;
- top: 0;
- width: 100%;
- height: 100%;
- padding: var(--border-width);
- border-radius: var(--border-radius);
- background-image: conic-gradient(
-		#488cfb,
-		#29dbbc,
-		#ddf505,
-		#ff9f0e,
-		#e440bb,
-		#655adc,
-		#488cfb
-	);
- -webkit-mask-image: var(--m-i), var(--m-i);
- mask-image: var(--m-i), var(--m-i);
- -webkit-mask-origin: var(--m-o);
- mask-origin: var(--m-o);
- -webkit-mask-clip: var(--m-o);
- mask-composite: exclude;
- -webkit-mask-composite: destination-out;
- filter: hue-rotate(0);
- animation: rotate-hue linear 500ms infinite;
- animation-play-state: paused;
-}
-/* From Uiverse.io by AqFox */ 
-.spinner {
-  width: 44px;
-  height: 44px;
-  animation: spinner-y0fdc1 2s infinite ease;
-  transform-style: preserve-3d;
-}
-
-.spinner > div {
-  background-color: rgba(0,77,255,0.2);
-  height: 100%;
-  position: absolute;
-  width: 100%;
-  border: 2px solid #004dff;
-}
-
-.spinner div:nth-of-type(1) {
-  transform: translateZ(-22px) rotateY(180deg);
-}
-
-.spinner div:nth-of-type(2) {
-  transform: rotateY(-270deg) translateX(50%);
-  transform-origin: top right;
-}
-
-.spinner div:nth-of-type(3) {
-  transform: rotateY(270deg) translateX(-50%);
-  transform-origin: center left;
-}
-
-.spinner div:nth-of-type(4) {
-  transform: rotateX(90deg) translateY(-50%);
-  transform-origin: top center;
-}
-
-.spinner div:nth-of-type(5) {
-  transform: rotateX(-90deg) translateY(50%);
-  transform-origin: bottom center;
-}
-
-.spinner div:nth-of-type(6) {
-  transform: translateZ(22px);
-}
-
-@keyframes spinner-y0fdc1 {
-  0% {
-    transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
-  }
-
-  50% {
-    transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
-  }
-
-  100% {
-    transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
-  }
-}
-
-/* 加载遮罩 */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg);
+.btn {
+  width: 220px;
+  height: 60px;
+  background-color: white;
+  color: #568fa6;
+  position: relative;
+  overflow: hidden;
+  font-size: 14px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.3s ease;
+  border-radius: 6px;
 }
 
-.loading-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-button:hover::after {
- animation-play-state: running;
-}
-
-@keyframes rotate-hue {
- to {
-  filter: hue-rotate(1turn);
- }
-}
-
-button,
-button::after {
- box-sizing: border-box;
-}
-/* From Uiverse.io by anniekoop */ 
-.input {
-  padding: 0.875rem;
-  font-size: 1rem;
-  border: 1.5px solid #000;
-  border-radius: 0.5rem;
-  box-shadow: 2.5px 3px 0 #000;
-  outline: none;
-  transition: ease 0.25s;
-  flex: 1;
-}
-
-.input:focus {
-  box-shadow: 5.5px 7px 0 black;
-}
-button:active {
- --border-width: 5px;
-}
-/* 移动端优化 */
-@media (max-width: 768px) {
-  .container {
-    padding: 12px;
-    margin: 12px auto;
-  }
-  
-  .layout {
-    gap: 12px;
-  }
-  
-  .card {
-    padding: 12px;
-  }
-  
-  .wheel {
-    width: 200px;
-    height: 200px;
-  }
-  
-  .wheel-label-display, .turntable-label {
-    font-size: 18px;
-    min-width: 100px;
-  }
-  
-  .display-name {
-    font-size: 22px;
-  }
-  
-  .controls {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  
-  .config {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .config > * {
-    width: 100%;
-  }
-  
-  input[type="number"], input[type="text"], select {
-    font-size: 16px; /* 防止iOS缩放 */
-  }
-  
-  .add-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .add-row input {
-    width: 100%;
-  }
-  
-  .actions {
-    flex-direction: column;
-    gap: 4px;
-  }
-}
-  button.ghost{--border-radius: 13px;--border-width: 4px;appearance:none;position:relative;padding:0.7em 1.5em;border:0;background-color:#f8fafc;font-family:"Roboto",Arial,"Segoe UI",sans-serif;font-size:14px;font-weight:500;color:#212121;z-index:2;}
-  button.ghost::after{--m-i:linear-gradient(#000,#000);--m-o:content-box,padding-box;content:"";position:absolute;left:0;top:0;width:100%;height:100%;padding:var(--border-width);border-radius:var(--border-radius);background-image:conic-gradient(#488cfb,#29dbbc,#ddf505,#ff9f0e,#e440bb,#655adc,#488cfb);-webkit-mask-image:var(--m-i),var(--m-i);mask-image:var(--m-i),var(--m-i);-webkit-mask-origin:var(--m-o);mask-origin:var(--m-o);-webkit-mask-clip:var(--m-o);mask-composite:exclude;-webkit-mask-composite:destination-out;filter:hue-rotate(0);animation:rotate-hue linear 500ms infinite;animation-play-state:paused;}
-  button.ghost:hover::after{animation-play-state:running;}
-  .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:0 6px 18px rgba(12,20,30,0.04);}
-  .layout{display:grid;grid-template-columns:360px 1fr;gap:18px;}
-  /* left panel */
-  .left{display:flex;flex-direction:column;gap:12px}
-  .list-header{display:flex;justify-content:space-between;align-items:center}
-  .fold-toggle{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px}
-  .name-list{max-height:340px;overflow:auto;padding:8px;border-radius:10px;background:#fff;border:1px solid #eef2ff}
-  .list-row{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:8px;margin-bottom:6px}
-  .list-row:hover{background:#f1f5f9}
-  .name{font-weight:600}
-  .weight{font-size:13px;color:var(--muted);margin-left:12px}
-  .small{font-size:13px;color:var(--muted)}
-  .actions{display:flex;gap:6px}
-  .icon-btn{--border-radius:8px;--border-width:2px;appearance:none;position:relative;padding:6px 12px;border:0;background-color:#f8fafc;font-family:"Roboto",Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:500;color:#212121;z-index:2;min-width:40px;text-align:center;}
-  .icon-btn::after{--m-i:linear-gradient(#000,#000);--m-o:content-box,padding-box;content:"";position:absolute;left:0;top:0;width:100%;height:100%;padding:var(--border-width);border-radius:var(--border-radius);background-image:conic-gradient(#488cfb,#29dbbc,#ddf505,#ff9f0e,#e440bb,#655adc,#488cfb);-webkit-mask-image:var(--m-i),var(--m-i);mask-image:var(--m-i),var(--m-i);-webkit-mask-origin:var(--m-o);mask-origin:var(--m-o);-webkit-mask-clip:var(--m-o);mask-composite:exclude;-webkit-mask-composite:destination-out;filter:hue-rotate(0);animation:rotate-hue linear 500ms infinite;animation-play-state:paused;}
-  .icon-btn:hover::after{animation-play-state:running;}
-  input[type="number"], input[type="text"]{padding:6px;border-radius:8px;border:1px solid #e6e6e6}
-  .add-row{display:flex;gap:8px;align-items:center;margin-top:6px}
-  .advanced-panel{margin-top:8px;padding:12px;border-radius:10px;background:#fff;border:1px solid #eef2ff}
-  label{font-size:13px;color:var(--muted)}
-  /* right panel */
-  .right{display:flex;flex-direction:column;gap:12px}
-  .config{display:flex;gap:12px;align-items:center}
-  .config > *{flex:1}
-  .big-display{height:220px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f8fbff);display:flex;align-items:center;justify-content:center;flex-direction:column;border:1px dashed #e6eefc}
-  .display-name{font-size:28px;font-weight:700}
-  .sub{color:var(--muted);font-size:13px}
-  .results{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{background:white;padding:8px 12px;border-radius:999px;border:1px solid #eef2ff;font-weight:600}
-  footer{margin-top:14px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
-  /* modal */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:999;}
-  .modal{background:white;padding:18px;border-radius:12px;min-width:320px;max-width:90%}
-  .modal h3{margin:0 0 8px 0}
-  .modal .result-list{display:flex;gap:8px;flex-wrap:wrap}
-  /* animation modal */
-  .animation-modal{background:white;padding:24px;border-radius:16px;min-width:500px;max-width:90%;text-align:center;position:relative;}
-  .animation-modal h3{margin-top:0;margin-bottom:20px;}
-  .animation-content{display:flex;flex-direction:column;align-items:center;gap:20px;}
-  .animation-display{font-size:32px;font-weight:700;color:#2563eb;min-height:60px;display:flex;align-items:center;justify-content:center;}
-  /* collapsed default json */
-  .json-area{font-family:monospace;background:#0f172a;color:#f8fafc;padding:10px;border-radius:8px;max-height:160px;overflow:auto}
-  /* small screens */
-  @media (max-width:880px){
-    .layout{grid-template-columns:1fr; }
-    .left{order:2}
-    .animation-modal{min-width:90%;padding:16px;}
-  }
-
-  .primary-large{--border-radius:12px;--border-width:4px;appearance:none;position:relative;padding:12px 28px;border:0;background-color:#2563eb;font-family:"Roboto",Arial,"Segoe UI",sans-serif;font-size:16px;font-weight:700;color:#fff;z-index:2;cursor:pointer;box-shadow:0 6px 18px rgba(37,99,235,0.12);}
-  .primary-large::after{--m-i:linear-gradient(#000,#000);--m-o:content-box,padding-box;content:"";position:absolute;left:0;top:0;width:100%;height:100%;padding:var(--border-width);border-radius:var(--border-radius);background-image:conic-gradient(#488cfb,#29dbbc,#ddf505,#ff9f0e,#e440bb,#655adc,#488cfb);-webkit-mask-image:var(--m-i),var(--m-i);mask-image:var(--m-i),var(--m-i);-webkit-mask-origin:var(--m-o);mask-origin:var(--m-o);-webkit-mask-clip:var(--m-o);mask-composite:exclude;-webkit-mask-composite:destination-out;filter:hue-rotate(0);animation:rotate-hue linear 500ms infinite;animation-play-state:paused;}
-  .primary-large:hover::after{animation-play-state:running;}
-  /* wheel / roulette styles */
-  .wheel-wrap{display:flex;justify-content:center;align-items:center;gap:20px;flex-direction:row;position:relative}
-  .wheel{width:280px;height:280px;border-radius:50%;position:relative;overflow:hidden;border:6px solid #fff;box-shadow:0 8px 22px rgba(2,6,23,0.06)}
-  .wheel .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;font-weight:700}
-  .wheel-label-display{font-size:24px;font-weight:700;color:#111827;min-width:120px;text-align:center;padding:12px;border-radius:12px;background:#f8fafc;border:2px solid #eef2ff;}
-  /* 优化指针样式 */
-.wheel-pointer {
+.btn:before, .btn:after {
+  content: "";
   position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+  width: 0;
+  height: 2px;
+  background-color: #44d8a4;
+  transition: all 0.3s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.btn:before {
+  right: 0;
+  top: 0;
+  transition: all 0.5s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.btn:after {
+  left: 0;
+  bottom: 0;
+}
+
+.btn span {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+
+.btn span:before, .btn span:after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 0;
+  background-color: #44d8a4;
+  transition: all 0.3s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.btn span:before {
+  right: 0;
+  top: 0;
+  transition: all 0.5s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.btn span:after {
+  left: 0;
+  bottom: 0;
+}
+
+.btn p {
+  padding: 0;
+  margin: 0;
+  transition: all 0.4s cubic-bezier(0.35, 0.1, 0.25, 1);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:2;
+  pointer-events:none;
+}
+
+.btn p:before, .btn p:after {
+  position: absolute;
+  width: 100%;
+  transition: all 0.4s cubic-bezier(0.35, 0.1, 0.25, 1);
+  z-index: 1;
+  left: 0;
+}
+
+.btn p:before {
+  content: attr(data-title);
+  top: 50%;
+  transform: translateY(-50%);
+  color: #111827;
+}
+
+.btn p:after {
+  content: attr(data-text);
+  top: 150%;
+  color: #44d8a4;
+}
+
+.btn:hover:before, .btn:hover:after {
+  width: 100%;
+}
+
+.btn:hover span {
+  z-index: 1;
+}
+
+.btn:hover span:before, .btn:hover span:after {
+  height: 100%;
+}
+
+.btn:hover p:before {
+  top: -50%;
+  transform: rotate(5deg);
+}
+
+.btn:hover p:after {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* start state */
+.btn.start {
+  background-color: #44d8a4;
+  color: #fff;
+  box-shadow: 0px 5px 10px -10px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn.start p:before {
+  top: -50%;
+  transform: rotate(5deg);
+}
+
+.btn.start p:after {
+  color: white;
+  transition: all 0s ease;
+  content: attr(data-start);
+  top: 50%;
+  transform: translateY(-50%);
+  animation: start 0.3s ease;
+  animation-fill-mode: forwards;
+}
+
+@keyframes start {
+  from { top: -50%; }
+}
+
+.btn.start:hover:before, .btn.start:hover:after {
+  display: none;
+}
+
+.btn.start:hover span { display: none; }
+
+.btn:active { outline:none; border:none; }
+.btn:focus { outline:0; }
+
+/* =====================
+   Loader style -> 样式2 (andrew-manzyk)
+   ===================== */
+.loader {
+  --color-one: #ffbf48;
+  --color-two: #be4a1d;
+  --color-three: #ffbf4780;
+  --color-four: #bf4a1d80;
+  --color-five: #ffbf4740;
+  --time-animation: 2s;
+  --size: 1;
+  position: relative;
+  border-radius: 50%;
+  transform: scale(var(--size));
+  box-shadow:
+    0 0 25px 0 var(--color-three),
+    0 20px 50px 0 var(--color-four);
+  animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
+}
+
+.loader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border-top: solid 1px var(--color-one);
+  border-bottom: solid 1px var(--color-two);
+  background: linear-gradient(180deg, var(--color-five), var(--color-four));
+  box-shadow:
+    inset 0 10px 10px 0 var(--color-three),
+    inset 0 -10px 10px 0 var(--color-four);
+}
+
+.loader .box {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(
+    180deg,
+    var(--color-one) 30%,
+    var(--color-two) 70%
+  );
+  mask: url(#clipping);
+  -webkit-mask: url(#clipping);
+}
+
+.loader svg {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+}
+
+.loader svg #clipping {
+  filter: contrast(15);
+  animation: roundness calc(var(--time-animation) / 2) linear infinite;
+}
+
+.loader svg #clipping polygon {
+  filter: blur(7px);
+}
+
+.loader svg #clipping polygon:nth-child(1) {
+  transform-origin: 75% 25%;
+  transform: rotate(90deg);
+}
+
+.loader svg #clipping polygon:nth-child(2) {
+  transform-origin: 50% 50%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+}
+
+.loader svg #clipping polygon:nth-child(3) {
+  transform-origin: 50% 60%;
+  animation: rotation var(--time-animation) linear infinite;
+  animation-delay: calc(var(--time-animation) / -3);
+}
+
+.loader svg #clipping polygon:nth-child(4) {
+  transform-origin: 40% 40%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+}
+
+.loader svg #clipping polygon:nth-child(5) {
+  transform-origin: 40% 40%;
+  animation: rotation var(--time-animation) linear infinite reverse;
+  animation-delay: calc(var(--time-animation) / -2);
+}
+
+.loader svg #clipping polygon:nth-child(6) {
+  transform-origin: 60% 40%;
+  animation: rotation var(--time-animation) linear infinite;
+}
+
+.loader svg #clipping polygon:nth-child(7) {
+  transform-origin: 60% 40%;
+  animation: rotation var(--time-animation) linear infinite;
+  animation-delay: calc(var(--time-animation) / -1.5);
+}
+
+@keyframes rotation { 0%{ transform: rotate(0deg);} 100%{ transform: rotate(360deg);} }
+@keyframes roundness { 0%{ filter: contrast(15);} 20%{ filter: contrast(3);} 40%{ filter: contrast(3);} 60%{ filter: contrast(15);} 100%{ filter: contrast(15);} }
+@keyframes colorize { 0%{ filter: hue-rotate(0deg);} 20%{ filter: hue-rotate(-30deg);} 40%{ filter: hue-rotate(-60deg);} 60%{ filter: hue-rotate(-90deg);} 80%{ filter: hue-rotate(-45deg);} 100%{ filter: hue-rotate(0deg);} }
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(255,255,255,0.9);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+  transition: opacity 2s ease;
+}
+.loading-overlay.hidden { opacity:0; pointer-events:none; }
+
+/* =====================
+   UI layout & other buttons (sizes adjusted)
+   ===================== */
+button.ghost{--border-radius:13px;--border-width:4px;appearance:none;position:relative;padding:0.5em 1.0em;border:0;background-color:#f8fafc;font-family:"Roboto",Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:600;color:#212121;z-index:2;border-radius:8px;min-width:84px;}
+.icon-btn{--border-radius:8px;--border-width:2px;appearance:none;position:relative;padding:6px 10px;border:0;background-color:#f8fafc;font-family:"Roboto",Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:600;color:#212121;z-index:2;min-width:44px;text-align:center;border-radius:8px;}
+.primary-large{display:none;} /* replaced by .btn in UI */
+
+.card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:0 6px 18px rgba(12,20,30,0.04);}
+.layout{display:grid;grid-template-columns:360px 1fr;gap:18px;}
+.left{display:flex;flex-direction:column;gap:12px}
+.list-header{display:flex;justify-content:space-between;align-items:center}
+.fold-toggle{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px}
+.name-list{max-height:340px;overflow:auto;padding:8px;border-radius:10px;background:#fff;border:1px solid #eef2ff}
+.list-row{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:8px;margin-bottom:6px}
+.list-row:hover{background:#f1f5f9}
+.name{font-weight:600}
+.weight{font-size:13px;color:var(--muted);margin-left:12px}
+.small{font-size:13px;color:var(--muted)}
+.actions{display:flex;gap:6px;align-items:center}
+.input { padding: 0.75rem; font-size: 1rem; border: 1.5px solid #000; border-radius: 0.5rem; box-shadow: 2.5px 3px 0 #000; outline: none; transition: ease 0.25s; flex: 1; }
+.input:focus{ box-shadow: 5.5px 7px 0 black;}
+
+/* right panel */
+.right{display:flex;flex-direction:column;gap:12px}
+.config{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.config > *{flex:1;min-width:200px;}
+.big-display{height:220px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f8fbff);display:flex;align-items:center;justify-content:center;flex-direction:column;border:1px dashed #e6eefc;position:relative;}
+
+/* display name removed - start button will be here instead */
+
+/* history */
+#historyList{margin-top:8px;max-height:180px;overflow:auto;padding:8px;border-radius:8px;background:#fff;border:1px solid #eef2ff;display:flex;flex-direction:column;gap:6px;}
+.history-compact .chip{font-size:12px;padding:6px 8px;border-radius:999px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.history-expanded .chip{font-size:14px;padding:8px 10px;border-radius:8px;display:inline-block;max-width:100%;}
+
+/* chips */
+.chip{background:white;padding:8px 12px;border-radius:999px;border:1px solid #eef2ff;font-weight:600;display:inline-block;margin-right:6px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;}
+
+/* name cooldown indicator */
+.cooldown-tag{display:inline-block;background:var(--cooldown-color);color:white;padding:2px 6px;border-radius:999px;font-size:12px;margin-left:8px;animation: pulse 2s infinite;}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* wheel / roulette styles */
+.wheel-wrap{display:flex;justify-content:center;align-items:center;gap:20px;flex-direction:row;position:relative}
+.wheel{width:280px;height:280px;border-radius:50%;position:relative;overflow:hidden;border:6px solid #fff;box-shadow:0 8px 22px rgba(2,6,23,0.06);transform-origin:center center;transition:transform 3s cubic-bezier(0.34, 1.56, 0.64, 1);}
+.wheel .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;font-weight:700}
+.wheel-label-display{font-size:24px;font-weight:700;color:#111827;min-width:120px;text-align:center;padding:12px;border-radius:12px;background:#f8fafc;border:2px solid #eef2ff;}
+.wheel-pointer { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); display: flex; flex-direction: column; align-items: center; }
+.wheel-pointer::before { content: ""; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid #ef4444; margin-bottom: 2px; }
+.wheel-pointer::after { content: ""; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #ef4444; }
+.wheel-pointer-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #ef4444; border: 1px solid #ef4444; white-space: nowrap; z-index: 11;}
+
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, background 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-backdrop[style*="display: flex"] {
+  opacity: 1;
+  visibility: visible;
+  background: rgba(0,0,0,0.5);
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.modal-backdrop[style*="display: flex"] .modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.animation-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.modal-backdrop[style*="display: flex"] .animation-modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.animation-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Add row */
+.add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
   align-items: center;
 }
 
-.wheel-pointer::before,
-.wheel-pointer::after {
-  content: '';
-  width: 0;
-  height: 0;
+.add-row input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #e6eefc;
+  border-radius: 8px;
 }
 
-.wheel-pointer::before {
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 20px solid #ef4444;
-  margin-bottom: 2px; /* 两个三角形之间的间距 */
+/* footer */
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #eef2ff;
 }
 
-.wheel-pointer::after {
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 20px solid #ef4444;
+/* responsive */
+@media (max-width:880px){
+  .layout{grid-template-columns:1fr;}
+  .left{order:2}
+  .animation-modal{min-width:90%;padding:16px;}
+  .big-display{height:180px}
+  .btn{width:200px;height:50px;font-size:13px}
+  .wheel{width:220px;height:220px}
+  .wheel-wrap{flex-direction:column;}
+  .config > *{min-width:100%;}
+  header{flex-direction:column;align-items:flex-start;}
+  .controls{width:100%;justify-content:flex-start;}
 }
 
-/* 在指针中间添加显示区域 */
-.wheel-pointer-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #ef4444;
-  border: 1px solid #ef4444;
-  white-space: nowrap;
-  z-index: 11;
+@media (max-width:480px){
+  .container{padding:12px;}
+  .btn{width:180px;height:48px;font-size:12px;}
+  .wheel{width:200px;height:200px;}
+  .add-row{flex-direction:column;}
+  .add-row input{width:100%;}
 }
-  /* small adjustments for wheel text */
-  @media (max-width:880px){ .wheel{width:220px;height:220px} }
 </style>
 </head>
 <body>
@@ -377,7 +507,9 @@ button:active {
       <div class="card">
         <div class="list-header">
           <strong>名单(折叠)</strong>
-          <button class="fold-toggle" id="toggleDefault">展开默认名单</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="fold-toggle" id="toggleDefault">展开默认名单</button>
+          </div>
         </div>
 
         <div id="defaultCollapsed" style="display:none;margin-top:10px;">
@@ -414,19 +546,20 @@ button:active {
           <label>抽取动画</label>
           <select id="animationSelect">
             <option value="roulette">轮盘式 (Roulette)</option>
+            <option value="spinner">简单滚动 (Spinner)</option>
           </select>
+
+          <label>抽取冷却(秒)</label>
+          <input id="cooldownSeconds" type="number" value="30" min="0" style="width:120px" />
 
           <label>导入名单(JSON 格式：{"名字":1.0, ...})</label>
           <textarea id="importJson" placeholder='{"张三":1.0, "李四":1.0}' rows="4" style="padding:8px;border-radius:8px;border:1px solid #e6eefc"></textarea>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button id="importBtn" class="ghost">导入名单</button>
             <button id="exportBtn" class="ghost">导出名单</button>
             <button id="downloadBtn" class="ghost">下载 JSON 文件</button>
             <input type="file" id="fileInput" accept=".json" style="display:none" />
           </div>
-
-          <label>默认名单(只读，折叠)</label>
-          <div class="json-area" id="defaultJson2" style="max-height:100px"></div>
         </div>
       </div>
 
@@ -441,29 +574,27 @@ button:active {
         <div>
           <label>是否按顺序更新权重</label>
           <select id="updateMode" style="width:160px">
-            <option value="sequential">顺序更新(每次抽后立即更新，影响下一次抽)</option>
-            <option value="independent">独立抽取(基于初始权重，同次抽取互不影响)</option>
+            <option value="sequential">顺序更新(每次抽后立即更新,影响下一次抽)</option>
+            <option value="independent">独立抽取(基于初始权重,同次抽取互不影响)</option>
           </select>
         </div>
       </div>
 
-      <div class="big-display card">
-        <div id="animArea" style="text-align:center;width:100%;padding:10px">
-          <div class="display-name" id="animName">准备就绪</div>
-          <div class="sub">点击"开始抽取"按钮进行抽选</div>
+      <div class="big-display card" id="bigDisplay">
+        <div class="buttons">
+          <button id="drawBtn" class="btn"><span></span><p data-start="good luck!" data-text="start!" data-title="开始抽取"></p></button>
         </div>
-      </div>
-
-      <div style="text-align:center;margin-top:12px">
-        <button id="drawBtn" class="primary-large">开始抽取</button>
       </div>
 
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
           <strong>最近抽取结果</strong>
-          <button id="clearHistory" class="ghost">清除</button>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+            <button id="toggleHistoryStyle" class="ghost">切换显示风格</button>
+            <button id="clearHistory" class="ghost">清除</button>
+          </div>
         </div>
-        <div style="margin-top:8px" id="historyList"></div>
+        <div id="historyList" class="history-compact"></div>
       </div>
 
       <footer>
@@ -475,7 +606,7 @@ button:active {
 </div>
 
 <!-- result modal -->
-<div class="modal-backdrop" id="modal">
+<div class="modal-backdrop" id="modal" style="display:none;">
   <div class="modal">
     <h3>抽取结果</h3>
     <div class="result-list" id="modalResults"></div>
@@ -490,11 +621,31 @@ button:active {
   <div class="animation-modal">
     <h3 id="animationTitle">抽取动画</h3>
     <div class="animation-content" id="animationContent">
-      <div class="animation-display" id="animationDisplay">准备中...</div>
+      <!-- 转盘动画将在这里动态生成 -->
     </div>
     <div style="margin-top:20px;">
       <button id="cancelAnimation" class="ghost">取消</button>
     </div>
+  </div>
+</div>
+
+<!-- loading overlay (uses loader style2) -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+  <div class="loader" aria-hidden="true">
+    <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <mask id="clipping">
+          <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
+          <polygon points="25,25 75,25 50,75" fill="white"></polygon>
+          <polygon points="50,25 75,75 25,75" fill="white"></polygon>
+          <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+          <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+          <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+          <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+        </mask>
+      </defs>
+    </svg>
+    <div class="box"></div>
   </div>
 </div>
 
@@ -514,36 +665,84 @@ let state = {
   list: {}, // {name: weight}
   multiplier: 0.4,
   animation: 'roulette',
-  history: []
+  history: [],
+  cooldowns: {}, // name -> timestamp(ms) until which name is on cooldown
+  cooldownSeconds: 30,
+  historyCompact: true
 };
 
 const el = id => document.getElementById(id);
+let cooldownTimer = null; // 冷却定时器
 
+/* Load state from localStorage if present, otherwise fallback to defaults. */
 function loadState(){
   try{
-    // 清空本地存储数据
-    localStorage.removeItem('weighted_draw_state_v1');
-    // 使用默认名单
-    state.list = {...DEFAULT_LIST};
-    // 重置其他状态
-    state.history = [];
-    state.multiplier = 0.4;
-    state.animation = 'roulette';
-    // 保存默认状态到本地存储
+    const raw = localStorage.getItem('weighted_draw_state_v1');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+      // ensure required fields exist
+      state.list = state.list || {...DEFAULT_LIST};
+      state.history = state.history || [];
+      state.cooldowns = state.cooldowns || {};
+      state.multiplier = typeof state.multiplier === 'number' ? state.multiplier : 0.4;
+      state.cooldownSeconds = state.cooldownSeconds || 10;
+      state.animation = state.animation || 'roulette';
+      
+      // 每次加载页面时重置所有人的权重为1.0
+      Object.keys(state.list).forEach(name => {
+        state.list[name] = 1.0;
+      });
+    }else{
+      // first run: use default
+      state.list = {...DEFAULT_LIST};
+      state.history = [];
+      state.multiplier = 0.4;
+      state.cooldowns = {};
+      state.cooldownSeconds = 30;
+      state.animation = 'roulette';
+    }
     saveState();
   }catch(e){
     console.warn('加载状态出错:', e);
-    // 确保即使出错也有默认值
     state.list = {...DEFAULT_LIST};
     state.history = [];
     state.multiplier = 0.4;
+    state.cooldowns = {};
+    state.cooldownSeconds = 30;
     state.animation = 'roulette';
     saveState();
   }
 }
 
 function saveState(){
-  localStorage.setItem('weighted_draw_state_v1', JSON.stringify(state));
+  try{
+    localStorage.setItem('weighted_draw_state_v1', JSON.stringify(state));
+  }catch(e){
+    console.warn('保存状态失败', e);
+  }
+}
+
+/* helper: check if a name is on cooldown (returns remaining seconds) */
+function getCooldownRemaining(name){
+  const until = state.cooldowns[name];
+  if(!until) return 0;
+  const remain = Math.max(0, Math.ceil((until - Date.now())/1000));
+  if(remain === 0) { 
+    delete state.cooldowns[name]; 
+    saveState(); 
+    return 0; 
+  }
+  return remain;
+}
+
+/* 启动冷却计时器 */
+function startCooldownTimer() {
+  if (cooldownTimer) clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(() => {
+    const filter = el('search').value.trim();
+    renderList(filter);
+  }, 1000);
 }
 
 /* ======== UI 渲染 ======== */
@@ -554,10 +753,11 @@ function renderList(filter=''){
   entries.filter(([n])=> n.toLowerCase().includes(filter.toLowerCase())).forEach(([name, w])=>{
     const row = document.createElement('div');
     row.className = 'list-row';
+    const cooldown = getCooldownRemaining(name);
     row.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px">
         <div class="name">${name}</div>
-        <div class="weight">权重 ${Number(w).toFixed(3)}</div>
+        ${ cooldown ? `<span class="cooldown-tag">冷却 ${cooldown}s</span>` : `<div class="weight">权重 ${Number(w).toFixed(3)}</div>` }
       </div>
       <div class="actions">
         <input type="number" step="0.1" value="${w}" style="width:88px;padding:6px;border-radius:8px;border:1px solid #e6eefc" data-name="${name}" class="editWeight"/>
@@ -566,7 +766,7 @@ function renderList(filter=''){
     `;
     container.appendChild(row);
   });
-  el('totalCount').innerText = entries.length;
+  el('totalCount').innerText = Object.keys(state.list).length;
   // attach edit handlers
   document.querySelectorAll('.editWeight').forEach(inp=>{
     inp.addEventListener('change', e=>{
@@ -583,6 +783,7 @@ function renderList(filter=''){
       const name = e.currentTarget.dataset.name;
       if(confirm('删除 ' + name + ' ?')){
         delete state.list[name];
+        delete state.cooldowns[name];
         saveState();
         renderList(el('search').value.trim());
       }
@@ -593,18 +794,51 @@ function renderList(filter=''){
 function renderHistory(){
   const box = el('historyList');
   box.innerHTML = '';
+  if(state.historyCompact){
+    box.className = 'history-compact';
+  }else{
+    box.className = 'history-expanded';
+  }
   for(let i=state.history.length-1;i>=0;i--){
     const rec = state.history[i];
     const d = new Date(rec.time).toLocaleString();
-    const div = document.createElement('div');
-    div.className = 'small';
-    div.style.marginBottom='6px';
-    div.innerHTML = `<strong>${d}</strong> — ${rec.results.map(r=>`<span class="chip">${r}</span>`).join(' ')}`;
-    box.appendChild(div);
+    const container = document.createElement('div');
+    container.style.display='flex';
+    container.style.flexDirection='column';
+    const meta = document.createElement('div');
+    meta.className='small';
+    meta.style.marginBottom='6px';
+    meta.innerHTML = `<strong>${d}</strong>`;
+    container.appendChild(meta);
+    const row = document.createElement('div');
+    row.style.display='flex';
+    row.style.flexWrap='wrap';
+    row.style.gap='6px';
+    rec.results.forEach((r, idx)=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.style.fontSize = state.historyCompact ? '12px' : '14px';
+      chip.innerText = `${idx+1}. ${r}`;
+      row.appendChild(chip);
+    });
+    container.appendChild(row);
+    box.appendChild(container);
   }
 }
 
-/* ======== Weighted random pick helpers ======== */
+/* ======== Weighted random pick helpers (respect cooldowns) ======== */
+function getEligibleList(listObj){
+  const now = Date.now();
+  const eligible = {};
+  for(const [k,v] of Object.entries(listObj)){
+    const until = state.cooldowns[k] || 0;
+    if(now >= until && Number(v) > 0){
+      eligible[k] = Number(v);
+    }
+  }
+  return eligible;
+}
+
 function weightedPickOnce(listObj){
   const names = Object.keys(listObj);
   const weights = names.map(n=> Number(listObj[n]) );
@@ -620,62 +854,69 @@ function weightedPickOnce(listObj){
 }
 
 function pickMultiple(count, mode='sequential'){
-  const tempList = {...state.list};
   const results = [];
+  // base source is state.list but we must respect cooldowns -> create eligible copy
+  let tempList = getEligibleList(state.list);
+  if(Object.keys(tempList).length === 0) return results;
   if(mode === 'independent'){
     for(let i=0;i<count;i++){
       const pick = weightedPickOnce(tempList);
       if(!pick) break;
       results.push(pick);
     }
+    // apply multipliers to actual state and set cooldowns
     results.forEach(name=>{
       if(name in state.list){
         state.list[name] = Number(state.list[name]) * Number(state.multiplier);
+        // set cooldown
+        if(Number(state.cooldownSeconds) > 0){
+          state.cooldowns[name] = Date.now() + Number(state.cooldownSeconds)*1000;
+        }
       }
     });
+    saveState();
     return results;
   }else{
     for(let i=0;i<count;i++){
       const pick = weightedPickOnce(tempList);
       if(!pick) break;
       results.push(pick);
+      // update tempList for sequential mode
       tempList[pick] = Number(tempList[pick]) * Number(state.multiplier);
-      if(pick in state.list) state.list[pick] = Number(state.list[pick]) * Number(state.multiplier);
     }
+    // apply updates to actual state and cooldowns in the order of results
+    results.forEach(name=>{
+      if(name in state.list){
+        state.list[name] = Number(state.list[name]) * Number(state.multiplier);
+        if(Number(state.cooldownSeconds) > 0){
+          state.cooldowns[name] = Date.now() + Number(state.cooldownSeconds)*1000;
+        }
+      }
+    });
+    saveState();
     return results;
   }
 }
 
-/* ======== Animation implementations ======== */
+/* pickSimulated used by animations - uses same logic (respects cooldowns) */
 function pickSimulated(count, mode){
   const original = {...state.list};
-  const names = Object.keys(original);
+  const eligibleBase = getEligibleList(original);
+  const names = Object.keys(eligibleBase);
   if(names.length === 0) return [];
-  function weightedOnce(listObj){
-    const nms = Object.keys(listObj);
-    const w = nms.map(k=> Number(listObj[k]));
-    const total = w.reduce((a,b)=>a+b,0);
-    if(total <= 0) return null;
-    let rnd = Math.random()*total;
-    let s=0;
-    for(let i=0;i<nms.length;i++){
-      s+=w[i];
-      if(rnd<=s) return nms[i];
-    }
-    return nms[nms.length-1];
-  }
-  const results = [];
   if(mode === 'independent'){
+    const results = [];
     for(let i=0;i<count;i++){
-      const pick = weightedOnce(original);
+      const pick = weightedPickOnce(eligibleBase);
       if(!pick) break;
       results.push(pick);
     }
     return results;
   }else{
-    const temp = {...original};
+    const results = [];
+    const temp = {...eligibleBase};
     for(let i=0;i<count;i++){
-      const pick = weightedOnce(temp);
+      const pick = weightedPickOnce(temp);
       if(!pick) break;
       results.push(pick);
       temp[pick] = Number(temp[pick]) * Number(state.multiplier);
@@ -684,54 +925,60 @@ function pickSimulated(count, mode){
   }
 }
 
+/* applyPickedResults kept for compatibility with some flows */
 function applyPickedResults(results){
   if(!results || results.length===0) return;
-  if(el('updateMode').value === 'independent'){
-    results.forEach(name=>{
-      if(name in state.list) state.list[name] = Number(state.list[name]) * Number(state.multiplier);
-    });
-  }else{
-    results.forEach(name=>{
-      if(name in state.list) state.list[name] = Number(state.list[name]) * Number(state.multiplier);
-    });
-  }
+  results.forEach(name=>{
+    if(name in state.list){
+      state.list[name] = Number(state.list[name]) * Number(state.multiplier);
+      if(Number(state.cooldownSeconds) > 0){
+        state.cooldowns[name] = Date.now() + Number(state.cooldownSeconds)*1000;
+      }
+    }
+  });
   saveState();
 }
 
+/* ======== Animation implementations ======== */
 function animateAndPick(count){
   const anim = state.animation || el('animationSelect').value;
   if(anim === 'roulette') return rouletteAnimation(count);
   return spinnerAnimation(count);
 }
 
-/* ======== Roulette (轮盘式) ======== */
+/* Roulette animation */
 function rouletteAnimation(count){
-  const names = Object.keys(state.list);
-  if(names.length === 0){ alert('名单为空'); return []; }
-  const weights = names.map(n=> Number(state.list[n]));
-  const total = weights.reduce((a,b)=>a+b,0) || names.length;
-  const angles = weights.map(w=> (w/total)*360 );
+  const namesAll = Object.keys(state.list);
+  const eligible = Object.entries(getEligibleList(state.list)).map(e=>e[0]);
+  if(eligible.length === 0){ alert('没有可用的候选人(可能都在冷却或权重为0)'); return []; }
   const results = pickSimulated(count, el('updateMode').value);
-  const targetName = results[0] || names[0];
+  const targetName = results[0] || eligible[0];
 
-// 设置动画模态框内容
-el('animationTitle').innerText = '轮盘抽选中...';
-el('animationContent').innerHTML = `
-  <div class="wheel-wrap">
-    <div style="position:relative;">
-      <div class="wheel" id="wheel" role="img" aria-label="轮盘"></div>
-      <div class="wheel-pointer">
-        <div class="wheel-pointer-label" id="wheelPointerLabel">${names[0]}</div>
-      </div>
-    </div>
-    <div class="wheel-label-display" id="wheelLabel">${names[0]}</div>
-  </div>
-`;
+  el('animationTitle').innerText = '轮盘抽选中...';
   
+  // 在弹窗中显示转盘
+  el('animationContent').innerHTML = `
+    <div class="wheel-wrap">
+      <div style="position:relative;">
+        <div class="wheel" id="wheel" role="img" aria-label="轮盘"></div>
+        <div class="wheel-pointer">
+          <div class="wheel-pointer-label" id="wheelPointerLabel">${eligible[0]}</div>
+        </div>
+      </div>
+      <div class="wheel-label-display" id="wheelLabel">${eligible[0]}</div>
+    </div>
+  `;
+
   const wheel = el('wheel');
   const wheelLabel = el('wheelLabel');
 
-  // 创建轮盘颜色
+  // build angles based on eligible only
+  const weights = []; const names = [];
+  const eligibleObj = getEligibleList(state.list);
+  Object.entries(eligibleObj).forEach(([n,w])=>{ names.push(n); weights.push(Number(w)); });
+  const total = weights.reduce((a,b)=>a+b,0) || names.length;
+  const angles = weights.map(w=> (w/total)*360 );
+
   const colors = ['#f97316','#f43f5e','#ef4444','#f59e0b','#10b981','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#64748b'];
   let stops = [], cur = 0;
   for(let i=0;i<angles.length;i++){
@@ -740,7 +987,7 @@ el('animationContent').innerHTML = `
   }
   wheel.style.background = `conic-gradient(${stops.join(',')})`;
 
-  // 计算目标角度
+  // compute final rotation to land on targetName
   let acc = 0, targetCenter = 0;
   for(let i=0;i<names.length;i++){
     const a = angles[i];
@@ -751,60 +998,49 @@ el('animationContent').innerHTML = `
     acc += a;
   }
 
-  // 旋转轮盘
   const spins = 6;
   const finalRotation = -(spins*360 + targetCenter);
   wheel.style.transformOrigin = '50% 50%';
-  // 使用更明显的缓动函数，添加反弹效果
-wheel.style.transition = `transform 3s cubic-bezier(0.34, 1.56, 0.64, 1)`;
+  wheel.style.transition = `transform 3s cubic-bezier(0.34, 1.56, 0.64, 1)`;
   
-  // 在动画过程中更新标签
+  // animation label update
   let startTime = Date.now();
   const duration = 3000;
   let animationFrame;
-  
-  function updateLabel(timestamp) {
+
+  function updateLabel(){
     const elapsed = Date.now() - startTime;
     const progress = Math.min(1, elapsed / duration);
-    
-    // 计算当前旋转角度
     const currentRotation = finalRotation * progress;
-    
-    // 计算当前指向的角度（0-360度）
     let currentAngle = (-currentRotation % 360 + 360) % 360;
-    
-    // 查找当前指向的名字
     let accumulated = 0;
     let currentName = names[0];
-  for(let i=0;i<angles.length;i++){
-    accumulated += angles[i];
-    if(currentAngle <= accumulated || (i === names.length-1 && Math.abs(currentAngle - 360) < 0.001)){
-      currentName = names[i];
-      break;
+    for(let i=0;i<angles.length;i++){
+      accumulated += angles[i];
+      if(currentAngle <= accumulated || (i === names.length-1 && Math.abs(currentAngle - 360) < 0.001)){
+        currentName = names[i];
+        break;
+      }
     }
-  }
-    
     wheelLabel.innerText = currentName;
-  el('wheelPointerLabel').innerText = currentName;
-    
+    const wp = el('wheelPointerLabel');
+    if(wp) wp.innerText = currentName;
     if(progress < 1){
       animationFrame = requestAnimationFrame(updateLabel);
     }
   }
-  
+
   return new Promise(resolve=>{
-    // 开始动画
-    void wheel.offsetWidth; // 强制重绘
+    void wheel.offsetWidth;
     wheel.style.transform = `rotate(${finalRotation}deg)`;
     startTime = Date.now();
     animationFrame = requestAnimationFrame(updateLabel);
-    
+
     setTimeout(()=>{
       cancelAnimationFrame(animationFrame);
       wheelLabel.innerText = targetName;
       applyPickedResults(results);
-      
-      // 显示最终结果
+
       setTimeout(()=>{
         closeAnimationModal();
         resolve(results);
@@ -812,49 +1048,36 @@ wheel.style.transition = `transform 3s cubic-bezier(0.34, 1.56, 0.64, 1)`;
     }, duration + 200);
   });
 }
-/* ======== Legacy spinner ======== */
+
+/* spinner animation (legacy) */
 function spinnerAnimation(count){
-  const names = Object.keys(state.list);
-  if(names.length === 0){
-    alert('名单为空');
-    return [];
-  }
-  
+  const eligible = Object.keys(getEligibleList(state.list));
+  if(eligible.length === 0){ alert('没有可用的候选人(可能都在冷却或权重为0)'); return []; }
   el('animationTitle').innerText = '随机抽选中...';
   el('animationContent').innerHTML = `
-    <div class="animation-display" id="spinnerDisplay">${names[0]}</div>
+    <div class="animation-display" id="spinnerDisplay">${eligible[0]}</div>
   `;
-  
   const display = el('spinnerDisplay');
   let lastIndex = 0;
   const duration = 3000;
-  
   return new Promise(resolve=>{
     const startTime = Date.now();
-    
-    function updateSpinner() {
+    function updateSpinner(){
       const now = Date.now();
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
       const speedFactor = 1 - Math.pow(progress, 3);
       const tick = 50 + Math.round(200 * speedFactor);
-      
-      lastIndex = (lastIndex + 1) % names.length;
-      display.innerText = names[lastIndex];
-      
+      lastIndex = (lastIndex + 1) % eligible.length;
+      display.innerText = eligible[lastIndex];
       if(elapsed < duration){
         setTimeout(updateSpinner, tick);
       } else {
         const results = pickSimulated(count, el('updateMode').value);
         applyPickedResults(results);
-        
-        setTimeout(()=>{
-          closeAnimationModal();
-          resolve(results);
-        }, 500);
+        setTimeout(()=>{ closeAnimationModal(); resolve(results); }, 500);
       }
     }
-    
     updateSpinner();
   });
 }
@@ -863,25 +1086,35 @@ function spinnerAnimation(count){
 async function doDraw(){
   const count = Math.max(1, Math.floor(Number(el('count').value) || 1));
   if(Object.keys(state.list).length === 0){
-    alert('名单为空，无法抽取');
+    alert('名单为空,无法抽取');
     return;
   }
+
+  const drawBtn = el('drawBtn');
+  const pElement = drawBtn.querySelector('p');
   
-  el('drawBtn').disabled = true;
-  el('drawBtn').innerText = '抽取中...';
+  // 保存原始数据属性
+  const originalStart = pElement.getAttribute('data-start');
+  const originalText = pElement.getAttribute('data-text');
+  const originalTitle = pElement.getAttribute('data-title');
   
+  // 修改按钮状态 - 使用正确的CSS类方式
+  drawBtn.disabled = true;
+  drawBtn.classList.add('start');
+  pElement.setAttribute('data-start', '抽取中...');
+  pElement.setAttribute('data-text', '抽取中...');
+  pElement.setAttribute('data-title', '抽取中...');
+
   try{
-    // 显示动画模态框
     showAnimationModal();
-    
     const results = await animateAndPick(count);
-    
+
     // 保存历史记录
     state.history = state.history || [];
     state.history.push({time:Date.now(), results});
     saveState();
     renderHistory();
-    
+
     // 显示结果模态框
     showModal(results);
     renderList(el('search').value.trim());
@@ -889,8 +1122,16 @@ async function doDraw(){
     console.error(err);
     alert('抽取发生错误');
   }finally{
-    el('drawBtn').disabled = false;
-    el('drawBtn').innerText = '开始抽取';
+    // 恢复按钮状态
+    drawBtn.disabled = false;
+    drawBtn.classList.remove('start');
+    pElement.setAttribute('data-start', originalStart);
+    pElement.setAttribute('data-text', originalText);
+    pElement.setAttribute('data-title', originalTitle);
+    
+    // ensure UI updated
+    renderList(el('search').value.trim());
+    renderHistory();
   }
 }
 
@@ -906,19 +1147,43 @@ function showModal(results){
     chip.innerText = `${i+1}. ${r}`;
     resultsDiv.appendChild(chip);
   });
+  
+  // 强制重绘以确保动画正确执行
+  void md.offsetWidth;
   md.style.display = 'flex';
+  
+  // 短暂延迟以确保display:flex已应用
+  setTimeout(() => {
+    md.style.opacity = '1';
+  }, 10);
 }
 
-function closeModal(){
-  el('modal').style.display = 'none';
+function closeModal(){ 
+  const md = el('modal');
+  md.style.opacity = '0';
+  setTimeout(() => {
+    md.style.display = 'none';
+  }, 300);
 }
 
-function showAnimationModal(){
-  el('animationModal').style.display = 'flex';
+function showAnimationModal(){ 
+  const am = el('animationModal');
+  // 强制重绘以确保动画正确执行
+  void am.offsetWidth;
+  am.style.display = 'flex';
+  
+  // 短暂延迟以确保display:flex已应用
+  setTimeout(() => {
+    am.style.opacity = '1';
+  }, 10);
 }
 
-function closeAnimationModal(){
-  el('animationModal').style.display = 'none';
+function closeAnimationModal(){ 
+  const am = el('animationModal');
+  am.style.opacity = '0';
+  setTimeout(() => {
+    am.style.display = 'none';
+  }, 300);
 }
 
 /* ======== Import/Export ======== */
@@ -958,55 +1223,30 @@ function downloadJsonFile(){
 
 /* ======== Init & event bindings ======== */
 function init(){
-  const loadingEl = document.createElement('div');
-  loadingEl.className = 'loading-overlay';
-  loadingEl.innerHTML = `
-    <div class="spinner">
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-  `;
-  document.body.appendChild(loadingEl);
-  
+  // show minimal loading overlay while init
+  const loadingEl = el('loadingOverlay');
+  loadingEl.style.display = 'flex';
+
   loadState();
+
   // fill default json display
   el('defaultJson').innerText = JSON.stringify(DEFAULT_LIST, null, 2);
-  el('defaultJson2').innerText = JSON.stringify(DEFAULT_LIST, null, 2);
-  // initial UI values
+  // 移除第二个默认名单显示,避免重复
+
+  // apply saved settings to UI
   el('multiplier').value = state.multiplier;
-el('animationSelect').value = 'roulette'; 
-state.animation = 'roulette';
-  state.animation = el('animationSelect').value;
+  el('animationSelect').value = state.animation || 'roulette';
+  el('cooldownSeconds').value = state.cooldownSeconds || 10;
   el('multiplierLabel').innerText = state.multiplier;
+  el('animationSelect').value = state.animation || 'roulette';
   renderList();
   renderHistory();
-
-  // 页面加载完成后隐藏加载动画
-  if (document.readyState === 'complete') {
-    setTimeout(() => {
-      loadingEl.classList.add('hidden');
-      setTimeout(() => {
-        if (document.body.contains(loadingEl)) {
-          document.body.removeChild(loadingEl);
-        }
-      }, 300);
-    }, 800);
-  } else {
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        loadingEl.classList.add('hidden');
-        setTimeout(() => {
-          if (document.body.contains(loadingEl)) {
-            document.body.removeChild(loadingEl);
-          }
-        }, 300);
-      }, 800);
-    });
-  }
+  
+  // 启动冷却计时器
+  startCooldownTimer();
+  
+  // hide loading overlay after small delay
+  setTimeout(()=>{ loadingEl.classList.add('hidden'); setTimeout(()=>{ loadingEl.style.display='none'; },300); }, 2000);
 
   // events
   el('drawBtn').addEventListener('click', doDraw);
@@ -1031,6 +1271,7 @@ state.animation = 'roulette';
   el('resetDefault').addEventListener('click', ()=>{
     if(confirm('确定恢复默认名单吗？(会覆盖当前名单)')){
       state.list = {...DEFAULT_LIST};
+      state.cooldowns = {};
       saveState();
       renderList();
     }
@@ -1054,6 +1295,12 @@ state.animation = 'roulette';
     state.animation = e.target.value;
     saveState();
   });
+  el('cooldownSeconds').addEventListener('change', e=>{
+    let v = parseInt(e.target.value)||0;
+    if(v<0) v=0;
+    state.cooldownSeconds = v;
+    saveState();
+  });
   el('importBtn').addEventListener('click', importFromTextarea);
   el('exportBtn').addEventListener('click', exportToTextarea);
   el('downloadBtn').addEventListener('click', downloadJsonFile);
@@ -1062,8 +1309,6 @@ state.animation = 'roulette';
   el('closeModal').addEventListener('click', closeModal);
   el('animationModal').addEventListener('click', (e)=> { if(e.target === el('animationModal')) closeAnimationModal(); });
   el('cancelAnimation').addEventListener('click', closeAnimationModal);
-  
-  // file input for JSON
   el('fileInput').addEventListener('change', (e)=>{
     const f = e.target.files[0];
     if(!f) return;
@@ -1087,10 +1332,14 @@ state.animation = 'roulette';
     reader.readAsText(f);
   });
 
-  // ensure UI animArea default
-  el('animArea').innerHTML = `<div class="display-name" id="animName">准备就绪</div><div class="sub">点击"开始抽取"按钮进行抽选</div>`;
+  el('toggleHistoryStyle').addEventListener('click', ()=>{
+    state.historyCompact = !state.historyCompact;
+    saveState();
+    renderHistory();
+  });
 }
 
+// initialize
 init();
 </script>
 </body>
